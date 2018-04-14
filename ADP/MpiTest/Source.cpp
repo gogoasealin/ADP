@@ -6,7 +6,7 @@
 int main(int argc, char** argv) {
 	int random;
 	bool lider = true;
-	int otherNumbers;
+	int otherNumbers, otherRanks;
 
 	// Initialize the MPI environment
 	MPI_Init(NULL, NULL);
@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 
 	srand(time(NULL) + (world_rank * 63));
 	random = rand() % 50;
-
+	//random = 11;
 	for (int i = 0; i < world_size; i++) {
 		if (i != world_rank) {
 			MPI_Send(&random, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
@@ -35,6 +35,13 @@ int main(int argc, char** argv) {
 
 			if (random < otherNumbers) {
 				lider = false;
+			}
+			else if (random == otherNumbers) {
+				MPI_Send(&world_rank, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+				MPI_Recv(&otherRanks, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+				if (world_rank < otherRanks) {
+					lider = false;
+				}
 			}
 		}
 	}
@@ -44,7 +51,7 @@ int main(int argc, char** argv) {
 		random , world_rank, world_size);
 
 	if (lider) {
-		printf("Cel mai mare numbar este %d al procesului %d ", random, world_rank);
+		printf("Cel mai mare numar este %d al procesului %d ", random, world_rank);
 	}
 
 
